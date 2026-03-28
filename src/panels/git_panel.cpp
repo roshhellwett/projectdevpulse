@@ -9,6 +9,8 @@
 #include <nlohmann/json.hpp>
 #include <cstdio>
 #include <cstdlib>
+#include <unistd.h>
+#include <limits.h>
 
 using namespace ftxui;
 using json = nlohmann::json;
@@ -16,7 +18,12 @@ using json = nlohmann::json;
 GitPanel::GitPanel() { refresh(); }
 
 std::string GitPanel::run_python_script() {
-    std::string cmd = "python3 src/core/gitreader.py . 2>/dev/null";
+    char cwd[PATH_MAX];
+    if (getcwd(cwd, sizeof(cwd)) == nullptr) {
+        return "{}";
+    }
+    std::string script_path = std::string(cwd) + "/src/core/gitreader.py";
+    std::string cmd = "python3 " + script_path + " " + cwd + " 2>/dev/null";
     std::string output;
     FILE* pipe = popen(cmd.c_str(), "r");
     if (!pipe) return "{}";
