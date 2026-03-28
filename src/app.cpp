@@ -97,12 +97,12 @@ void DevPulseApp::run() {
         }
         
         if (input_mode) {
-            if (event == Event::Escape) {
+            if (event == Event::Escape || event == Event::Character(27)) {
                 input_mode = false;
                 input_buffer = "";
                 return true;
             }
-            if (event == Event::Enter) {
+            if (event == Event::Return) {
                 if (!input_buffer.empty()) {
                     task_panel.add_task(input_buffer);
                 }
@@ -110,7 +110,7 @@ void DevPulseApp::run() {
                 input_buffer = "";
                 return true;
             }
-            if (event == Event::Backspace) {
+            if (event == Event::Delete) {
                 if (!input_buffer.empty()) {
                     input_buffer.pop_back();
                 }
