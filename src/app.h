@@ -32,7 +32,7 @@ private:
     Config config;
     std::atomic<bool> running;
     bool input_mode;
-    std::string input_buffer;
+    ftxui::Input input_field;
     
     void refresh_loop();
 };

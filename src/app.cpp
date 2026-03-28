@@ -8,6 +8,7 @@
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/screen_interactive.hpp>
+#include <ftxui/component/input.hpp>
 #include <thread>
 #include <chrono>
 #include <mutex>
@@ -21,7 +22,18 @@ DevPulseApp::DevPulseApp()
       config(ConfigLoader().get_config()),
       running(true),
       input_mode(false),
-      input_buffer("") {
+      input_field(Input({
+          .placeholder = "Type task and press ENTER...",
+          .on_change = [] {},
+          .on_enter = [&] {
+              std::string text = input_field.content();
+              if (!text.empty() && input_mode) {
+                  task_panel.add_task(text);
+              }
+              input_mode = false;
+              input_field.content() = "";
+          },
+      })) {
     log_panel.set_log_path(config.log_file);
 }
 
@@ -64,16 +76,17 @@ void DevPulseApp::run() {
         };
         Element right_column = vbox(right_elements) | flex;
 
-        Elements footer_content;
+        Element footer;
         if (input_mode) {
-            footer_content = {
-                text("New task: " + input_buffer + "_") | color(Color::Yellow),
-                text("Press ENTER to save | ESC to cancel") | color(Color::Cyan),
-            };
+            footer = vbox({
+                text("New Task:") | bold | color(Color::Yellow),
+                input_field.Render() | border,
+                text("ENTER: save | ESC: cancel") | color(Color::Cyan),
+            }) | center;
         } else {
-            footer_content = {
+            footer = vbox({
                 text("q: quit | a: add task | d: toggle | x: delete | arrows: navigate") | color(Color::Cyan),
-            };
+            }) | center;
         }
 
         return vbox({
@@ -85,7 +98,7 @@ void DevPulseApp::run() {
                 right_column,
             }) | flex,
             separator(),
-            vbox(footer_content) | center,
+            footer,
         });
     });
 
@@ -99,28 +112,10 @@ void DevPulseApp::run() {
         if (input_mode) {
             if (event == Event::Escape) {
                 input_mode = false;
-                input_buffer = "";
+                input_field.content() = "";
                 return true;
             }
-            if (event == Event::Return) {
-                if (!input_buffer.empty()) {
-                    task_panel.add_task(input_buffer);
-                }
-                input_mode = false;
-                input_buffer = "";
-                return true;
-            }
-            if (event == Event::Delete) {
-                if (!input_buffer.empty()) {
-                    input_buffer.pop_back();
-                }
-                return true;
-            }
-            if (event.is_character()) {
-                input_buffer += event.character();
-                return true;
-            }
-            return true;
+            return false;
         }
         
         if (event == Event::ArrowUp) {
@@ -135,7 +130,8 @@ void DevPulseApp::run() {
         }
         if (event == Event::Character('a')) {
             input_mode = true;
-            input_buffer = "";
+            input_field.content() = "";
+            input_field.TakeFocus() = true;
             return true;
         }
         if (event == Event::Character('d')) {
