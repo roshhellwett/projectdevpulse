@@ -7,6 +7,7 @@
 #include "task_panel.h"
 #include <ftxui/dom/elements.hpp>
 #include <nlohmann/json.hpp>
+#include <unistd.h>
 #include <fstream>
 #include <ctime>
 #include <sstream>
@@ -132,7 +133,7 @@ Element TaskPanel::render() {
     
     if (tasks.empty()) {
         task_lines.push_back(
-            text("No tasks. Press 'a' to add.") | dim | color(Color::Gray)
+            text("No tasks. Press 'a' to add.") | dim | color(Color::RGB(128, 128, 128))
         );
     } else {
         for (size_t i = 0; i < tasks.size(); ++i) {
@@ -141,13 +142,14 @@ Element TaskPanel::render() {
             
             std::string checkbox = t.done ? "[x]" : "[ ]";
             Color check_color = t.done ? Color::Green : Color::White;
-            Color text_color = t.done ? Color::Gray : Color::White;
+            Color text_color = t.done ? Color::RGB(128, 128, 128) : Color::White;
             
-            auto line = hbox({
+            Elements line_elements = {
                 text(checkbox) | color(check_color),
                 text(" ") | flex,
-                text(t.text) | text_color,
-            });
+                text(t.text) | color(text_color),
+            };
+            auto line = hbox(line_elements);
             
             if (is_selected) {
                 line = line | inverted;

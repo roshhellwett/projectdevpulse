@@ -12,19 +12,20 @@ Built and maintained by **Zenith Open Source Projects**
 - **Log Viewer**: Live tail system logs with color-coded entries
 - **Task Tracker**: Per-project persistent TODO list stored as JSON
 
-## Install
+## Install & Run
 
 ```bash
 git clone https://github.com/zenith-open-source/devpulse
 cd devpulse
-./scripts/install_deps.sh
-./build.sh
+./build.sh    # First time: installs deps + builds
+./run.sh      # Rebuilds if needed + runs
 ```
 
-## Run
+## Clean
 
 ```bash
-./run.sh
+./clean.sh           # Remove build directory
+./clean.sh --full    # Remove build + force deps reinstall on next build
 ```
 
 ## Keyboard Shortcuts

@@ -73,7 +73,7 @@ Element ProcessPanel::render() {
     Elements lines;
 
     if (processes.empty()) {
-        lines.push_back(text("No dev processes running") | dim | color(Color::Gray));
+        lines.push_back(text("No dev processes running") | dim | color(Color::RGB(128, 128, 128)));
     } else {
         for (auto& p : processes) {
             lines.push_back(hbox({

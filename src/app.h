@@ -17,10 +17,10 @@
 #include "panels/task_panel.h"
 #include "utils/config.h"
 
-class App {
+class DevPulseApp {
 public:
-    App();
-    ~App();
+    DevPulseApp();
+    ~DevPulseApp();
     void run();
 private:
     ftxui::ScreenInteractive screen;
