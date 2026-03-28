@@ -34,11 +34,11 @@ void LogPanel::set_log_path(const std::string& path) {
 void LogPanel::refresh() {
     if (!log_file.is_open()) {
         if (log_path.empty()) {
-            log_path = "/var/log/messages";
+            log_path = "devpulse.log";
             log_file.open(log_path, std::ios::in);
         }
         if (!log_file.is_open()) {
-            log_path = "/var/log/syslog";
+            log_path = "output.log";
             log_file.open(log_path, std::ios::in);
         }
         if (log_file.is_open()) {
@@ -70,8 +70,8 @@ Element LogPanel::render() {
     
     if (!log_file.is_open()) {
         log_lines.push_back(text("Log file not found") | color(Color::Red));
-        log_lines.push_back(text("Tried: /var/log/syslog") | color(Color::Cyan));
-        log_lines.push_back(text("       /var/log/messages") | color(Color::Cyan));
+        log_lines.push_back(text("Create: devpulse.log") | color(Color::Cyan));
+        log_lines.push_back(text("       output.log") | color(Color::Cyan));
     } else {
         for (auto& line : lines) {
             if (line.find("ERROR") != std::string::npos ||

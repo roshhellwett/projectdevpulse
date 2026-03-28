@@ -6,61 +6,66 @@
 
 #include "git_panel.h"
 #include <ftxui/dom/elements.hpp>
-#include <nlohmann/json.hpp>
 #include <cstdio>
 #include <cstdlib>
-#include <unistd.h>
+#include <filesystem>
+#include <sstream>
 
 using namespace ftxui;
-using json = nlohmann::json;
+namespace fs = std::filesystem;
+
+static std::string run_command(const char* cmd) {
+    std::string result;
+    FILE* pipe = _popen(cmd, "r");
+    if (!pipe) return "";
+    char buf[512];
+    while (fgets(buf, sizeof(buf), pipe)) {
+        result += buf;
+    }
+    _pclose(pipe);
+    return result;
+}
 
 GitPanel::GitPanel() { refresh(); }
 
-std::string GitPanel::run_python_script() {
-    char cwd[1024];
-    if (getcwd(cwd, sizeof(cwd)) == nullptr) {
-        return "{}";
-    }
-    
-    std::string cmd = "cd ";
-    cmd += cwd;
-    cmd += " && python3 src/core/gitreader.py .";
-    
-    FILE* pipe = popen(cmd.c_str(), "r");
-    if (!pipe) {
-        return "{}";
-    }
-    
-    std::string output;
-    char buf[512];
-    while (fgets(buf, sizeof(buf), pipe)) {
-        output += buf;
-    }
-    pclose(pipe);
-    
-    if (output.empty()) {
-        return "{}";
-    }
-    
-    return output;
-}
-
-GitInfo GitPanel::parse_output(const std::string& json_str) {
-    GitInfo g;
-    try {
-        auto j = json::parse(json_str);
-        g.is_git = j.value("is_git", false);
-        g.branch = j.value("branch", "");
-        for (auto& s : j.value("status",  json::array()))
-            g.status.push_back(s.get<std::string>());
-        for (auto& c : j.value("commits", json::array()))
-            g.commits.push_back(c.get<std::string>());
-    } catch (...) { g.is_git = false; }
-    return g;
-}
-
 void GitPanel::refresh() {
-    info = parse_output(run_python_script());
+    GitInfo g;
+    
+    fs::path cwd = fs::current_path();
+    fs::path git_dir = cwd / ".git";
+    
+    if (!fs::exists(git_dir)) {
+        info = g;
+        return;
+    }
+    
+    g.is_git = true;
+    
+    std::string branch = run_command("git branch --show-current");
+    if (!branch.empty() && branch.back() == '\n') branch.pop_back();
+    g.branch = branch;
+    
+    std::string status = run_command("git status --porcelain");
+    if (!status.empty()) {
+        std::istringstream iss(status);
+        std::string line;
+        while (std::getline(iss, line)) {
+            if (line.length() >= 3) {
+                g.status.push_back(line.substr(3));
+            }
+        }
+    }
+    
+    std::string commits = run_command("git log --oneline -5");
+    if (!commits.empty()) {
+        std::istringstream iss(commits);
+        std::string line;
+        while (std::getline(iss, line)) {
+            g.commits.push_back(line);
+        }
+    }
+    
+    info = g;
 }
 
 Element GitPanel::render() {

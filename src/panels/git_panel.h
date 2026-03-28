@@ -23,6 +23,4 @@ public:
     ftxui::Element render();
 private:
     GitInfo info;
-    GitInfo parse_output(const std::string& json_str);
-    std::string run_python_script();
 };

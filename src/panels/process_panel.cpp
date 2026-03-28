@@ -6,18 +6,26 @@
 
 #include "process_panel.h"
 #include <ftxui/dom/elements.hpp>
-#include <dirent.h>
+#include <windows.h>
+#include <tlhelp32.h>
+#include <psapi.h>
 #include <cstring>
 #include <algorithm>
+#include <vector>
+
+#pragma comment(lib, "kernel32.lib")
+#pragma comment(lib, "psapi.lib")
 
 using namespace ftxui;
 
 static const char* DEV_PROCESSES[] = {
-    "gcc", "g++", "clang", "clang++", "python", "python3", "node", "npm",
+    "gcc", "g++", "clang", "clang++", "python", "python3", "python2", "node", "npm",
     "yarn", "vim", "nvim", "emacs", "make", "cmake", "cargo", "rustc",
     "go", "javac", "java", "perl", "ruby", "php", "lua", "dotnet", "gradle",
     "webpack", "vite", "next", "nuxt", "django", "flask", "rails", "spring",
-    "mvn", "sbt", "zig", "swift", "kotlin", "scala"
+    "mvn", "sbt", "zig", "swift", "kotlin", "scala",
+    "code", "devenv", "clion", "pycharm", "webstorm", "goland",
+    "sublime_text", "notepad++", "git", "cmd", "powershell", "terminal"
 };
 
 static const size_t NUM_DEV_PROCESSES = sizeof(DEV_PROCESSES) / sizeof(DEV_PROCESSES[0]);
@@ -26,7 +34,7 @@ bool ProcessPanel::is_dev_process(const std::string& name) {
     std::string lower_name = name;
     std::transform(lower_name.begin(), lower_name.end(), lower_name.begin(), ::tolower);
     for (size_t i = 0; i < NUM_DEV_PROCESSES; ++i) {
-        if (lower_name == DEV_PROCESSES[i])
+        if (lower_name.find(DEV_PROCESSES[i]) != std::string::npos)
             return true;
     }
     return false;
@@ -34,32 +42,27 @@ bool ProcessPanel::is_dev_process(const std::string& name) {
 
 std::vector<ProcessInfo> ProcessPanel::get_dev_processes() {
     std::vector<ProcessInfo> result;
-    DIR* proc_dir = opendir("/proc");
-    if (!proc_dir) return result;
-
-    struct dirent* entry;
-    while ((entry = readdir(proc_dir)) != nullptr) {
-        if (entry->d_type != DT_DIR) continue;
-        if (!isdigit(entry->d_name[0])) continue;
-
-        int pid = atoi(entry->d_name);
-        std::string comm_path = "/proc/" + std::string(entry->d_name) + "/comm";
-        FILE* f = fopen(comm_path.c_str(), "r");
-        if (!f) continue;
-
-        char name[256] = {0};
-        if (fgets(name, sizeof(name), f)) {
-            name[strcspn(name, "\n")] = 0;
-            if (is_dev_process(name)) {
+    
+    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (snapshot == INVALID_HANDLE_VALUE)
+        return result;
+    
+    PROCESSENTRY32 pe32;
+    pe32.dwSize = sizeof(PROCESSENTRY32);
+    
+    if (Process32First(snapshot, &pe32)) {
+        do {
+            std::string process_name = pe32.szExeFile;
+            if (is_dev_process(process_name)) {
                 ProcessInfo info;
-                info.pid = pid;
-                info.name = name;
+                info.pid = pe32.th32ProcessID;
+                info.name = process_name;
                 result.push_back(info);
             }
-        }
-        fclose(f);
+        } while (Process32Next(snapshot, &pe32));
     }
-    closedir(proc_dir);
+    
+    CloseHandle(snapshot);
     return result;
 }
 

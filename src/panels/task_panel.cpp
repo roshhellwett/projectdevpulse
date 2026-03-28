@@ -7,7 +7,6 @@
 #include "task_panel.h"
 #include <ftxui/dom/elements.hpp>
 #include <nlohmann/json.hpp>
-#include <unistd.h>
 #include <fstream>
 #include <ctime>
 #include <sstream>
@@ -29,14 +28,15 @@ static std::string get_current_timestamp() {
 }
 
 static std::string get_project_name() {
-    char cwd[1024];
-    if (getcwd(cwd, sizeof(cwd)) == nullptr) return "default";
-    std::string path(cwd);
+    std::error_code ec;
+    fs::path cwd = fs::current_path(ec);
+    if (ec) return "default";
+    std::string path = cwd.string();
     size_t pos = path.find_last_of("/\\");
     if (pos != std::string::npos) {
         return path.substr(pos + 1);
     }
-    return "default";
+    return cwd.filename().string();
 }
 
 TaskPanel::TaskPanel() : selected_index(0), next_id(1) {
