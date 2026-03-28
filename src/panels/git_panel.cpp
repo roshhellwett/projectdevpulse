@@ -7,10 +7,8 @@
 #include "git_panel.h"
 #include <ftxui/dom/elements.hpp>
 #include <nlohmann/json.hpp>
-#include <array>
-#include <memory>
-#include <stdexcept>
 #include <cstdio>
+#include <cstdlib>
 
 using namespace ftxui;
 using json = nlohmann::json;
@@ -19,13 +17,13 @@ GitPanel::GitPanel() { refresh(); }
 
 std::string GitPanel::run_python_script() {
     std::string cmd = "python3 src/core/gitreader.py . 2>/dev/null";
-    std::array<char, 512> buf;
     std::string output;
-    std::unique_ptr<FILE, decltype(&pclose)>
-        pipe(popen(cmd.c_str(), "r"), pclose);
+    FILE* pipe = popen(cmd.c_str(), "r");
     if (!pipe) return "{}";
-    while (fgets(buf.data(), buf.size(), pipe.get()))
-        output += buf.data();
+    char buf[512];
+    while (fgets(buf, sizeof(buf), pipe))
+        output += buf;
+    pclose(pipe);
     return output;
 }
 

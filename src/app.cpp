@@ -97,7 +97,7 @@ void DevPulseApp::run() {
         }
         
         if (input_mode) {
-            if (event == Event::Escape || event == Event::Character(27)) {
+            if (event == Event::Escape) {
                 input_mode = false;
                 input_buffer = "";
                 return true;
