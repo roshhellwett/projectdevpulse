@@ -1,0 +1,109 @@
+/**
+ * @project  devpulse
+ * @org      Zenith Open Source Projects
+ * @license  MIT License
+ */
+
+#include "app.h"
+#include <ftxui/dom/elements.hpp>
+#include <ftxui/component/component.hpp>
+#include <ftxui/component/screen_interactive.hpp>
+#include <thread>
+#include <chrono>
+#include <mutex>
+
+using namespace ftxui;
+
+static std::mutex refresh_mutex;
+
+App::App() 
+    : screen(ScreenInteractive::Fullscreen()),
+      config(ConfigLoader().get_config()),
+      running(true) {
+    log_panel.set_log_path(config.log_file);
+}
+
+App::~App() {
+    running = false;
+}
+
+void App::refresh_loop() {
+    while (running) {
+        {
+            std::lock_guard<std::mutex> lock(refresh_mutex);
+            sys_panel.refresh();
+            git_panel.refresh();
+            process_panel.refresh();
+            log_panel.refresh();
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(config.refresh_rate_ms));
+        if (running) {
+            screen.PostEvent(Event::Custom);
+        }
+    }
+}
+
+void App::run() {
+    std::thread refresher([this] { refresh_loop(); });
+    
+    auto renderer = Renderer([&] {
+        std::lock_guard<std::mutex> lock(refresh_mutex);
+        
+        Element left_column = vbox({
+            sys_panel.render() | flex,
+            process_panel.render() | flex,
+        }) | flex;
+
+        Element right_column = vbox({
+            git_panel.render() | flex,
+            log_panel.render() | flex,
+            task_panel.render() | flex,
+        }) | flex;
+
+        return vbox({
+            text("devpulse — Zenith Open Source Projects") | bold | center,
+            separator(),
+            hbox({
+                left_column,
+                separator(),
+                right_column,
+            }) | flex,
+            separator(),
+            text("q: quit | a: add task | d: toggle | x: delete | arrows: navigate") | dim | center,
+        });
+    });
+
+    auto component = CatchEvent(renderer, [&](Event event) {
+        if (event == Event::Character('q')) {
+            running = false;
+            screen.ExitLoopClosure()();
+            return true;
+        }
+        if (event == Event::ArrowUp) {
+            int sel = task_panel.get_selected();
+            task_panel.set_selected(sel - 1);
+            return true;
+        }
+        if (event == Event::ArrowDown) {
+            int sel = task_panel.get_selected();
+            task_panel.set_selected(sel + 1);
+            return true;
+        }
+        if (event == Event::Character('a')) {
+            task_panel.add_task("New task");
+            return true;
+        }
+        if (event == Event::Character('d')) {
+            task_panel.toggle_task(task_panel.get_selected());
+            return true;
+        }
+        if (event == Event::Character('x')) {
+            task_panel.delete_task(task_panel.get_selected());
+            return true;
+        }
+        return false;
+    });
+
+    screen.Loop(component);
+    refresher.join();
+}

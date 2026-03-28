@@ -1,0 +1,16 @@
+[general]
+refresh_rate_ms = 1000
+theme = "dark"
+
+[panels]
+show_system  = true
+show_git     = true
+show_process = true
+show_log     = true
+show_tasks   = true
+
+[log]
+file = "/var/log/syslog"
+
+[process]
+filter = ["gcc", "g++", "python", "node", "vim", "nvim", "make"]

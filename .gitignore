@@ -1,0 +1,10 @@
+build/
+*.o
+*.out
+*.log
+pycache/
+.pyc
+.cache/
+compile_commands.json
+.DS_Store
+tasks/*.json
