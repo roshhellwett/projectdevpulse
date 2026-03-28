@@ -11,6 +11,7 @@
 #include <thread>
 #include <chrono>
 #include <mutex>
+#include <ctime>
 
 using namespace ftxui;
 
@@ -21,7 +22,8 @@ DevPulseApp::DevPulseApp()
       config(ConfigLoader().get_config()),
       running(true),
       input_mode(false),
-      input_buffer("") {
+      input_buffer(""),
+      pulse_state(0) {
     log_panel.set_log_path(config.log_file);
 }
 
@@ -37,6 +39,7 @@ void DevPulseApp::refresh_loop() {
             git_panel.refresh();
             process_panel.refresh();
             log_panel.refresh();
+            pulse_state = (pulse_state + 1) % 4;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(config.refresh_rate_ms));
         if (running) {
@@ -45,10 +48,23 @@ void DevPulseApp::refresh_loop() {
     }
 }
 
+std::string DevPulseApp::get_pulse_indicator() {
+    const char* states[] = { " ● ", " ○ ", " ● ", " ○ " };
+    return states[pulse_state];
+}
+
+std::string DevPulseApp::get_timestamp() {
+    auto now = std::time(nullptr);
+    auto tm = *std::localtime(&now);
+    char buf[32];
+    std::strftime(buf, sizeof(buf), "%H:%M:%S", &tm);
+    return std::string(buf);
+}
+
 void DevPulseApp::run() {
     std::thread refresher([this] { refresh_loop(); });
     
-    auto input_comp = Input(&input_buffer, "Type task and press ENTER...");
+    auto input_comp = Input(&input_buffer, "Type your task here...");
     
     auto renderer = Renderer([&] {
         std::lock_guard<std::mutex> lock(refresh_mutex);
@@ -66,28 +82,73 @@ void DevPulseApp::run() {
         };
         Element right_column = vbox(right_elements) | flex;
 
+        Element header = hbox({
+            text("") | flex,
+            vbox({
+                text("") | size(HEIGHT, EQUAL, 1),
+                text("  ╔══════════════════════════════════════════════════════════╗") | color(Color::CyanLight),
+                text("  ║") | color(Color::CyanLight),
+                hbox({
+                    text("  ║       ") | color(Color::CyanLight),
+                    text("PROJECT DEV PULSE") | bold | color(Color::CyanLight),
+                    text("  v1.0.0") | color(Color::White),
+                }),
+                text("  ║       ") | color(Color::CyanLight),
+                hbox({
+                    text("  ║       ") | color(Color::CyanLight),
+                    text("Zenith Open Source Projects") | color(Color::White),
+                    text("           ") | flex,
+                    text("Live") | bold | color(pulse_state % 2 == 0 ? Color::Green : Color::GreenLight),
+                }) | flex,
+                text("  ╚══════════════════════════════════════════════════════════╝") | color(Color::CyanLight),
+                text("") | size(HEIGHT, EQUAL, 1),
+            }) | flex,
+            text("") | flex,
+        });
+
         Element footer;
         if (input_mode) {
             footer = vbox({
-                text("New Task:") | bold | color(Color::Yellow),
+                separator() | color(Color::Yellow),
+                hbox({
+                    text("  ADD NEW TASK") | bold | color(Color::Yellow),
+                    text("                              ") | flex,
+                    text("ENTER: Save") | color(Color::Green),
+                    text("  |  ") | color(Color::DimWhite),
+                    text("ESC: Cancel") | color(Color::Red),
+                }) | bold,
                 input_comp->Render() | border,
-                text("ENTER: save | ESC: cancel") | color(Color::Cyan),
-            }) | center;
+            }) | color(Color::Yellow);
         } else {
             footer = vbox({
-                text("q: quit | a: add task | d: toggle | x: delete | arrows: navigate") | color(Color::Cyan),
-            }) | center;
+                separator() | color(Color::CyanDark),
+                hbox({
+                    text("  Copyright (c) 2024 ") | color(Color::DimWhite),
+                    text("Zenith Open Source Projects") | bold | color(Color::White),
+                    text("  |  All rights reserved") | color(Color::DimWhite),
+                    text("                    ") | flex,
+                    text("[q] Quit") | color(Color::Red) | bold,
+                    text("  [a] Add  ") | color(Color::Green),
+                    text("[d] Toggle  ") | color(Color::Yellow),
+                    text("[x] Delete  ") | color(Color::Red),
+                    text("[↑↓] Navigate") | color(Color::Cyan),
+                }),
+                hbox({
+                    text("  DevPulse - Your Development Companion") | color(Color::DimWhite),
+                    text("                                         ") | flex,
+                    text("Last update: ") | color(Color::DimWhite),
+                    text(get_timestamp()) | color(Color::Cyan) | bold,
+                }),
+            });
         }
 
         return vbox({
-            text("devpulse - Zenith Open Source Projects") | bold | center,
-            separator(),
+            header,
             hbox({
                 left_column,
-                separator(),
+                text("│") | color(Color::CyanDark),
                 right_column,
             }) | flex,
-            separator(),
             footer,
         });
     });
