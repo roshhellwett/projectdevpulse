@@ -10,7 +10,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <unistd.h>
-#include <limits.h>
 
 using namespace ftxui;
 using json = nlohmann::json;
@@ -22,14 +21,15 @@ std::string GitPanel::run_python_script() {
     if (getcwd(cwd, sizeof(cwd)) == nullptr) {
         return "{}";
     }
-    std::string script_path = cwd;
-    script_path += "/src/core/gitreader.py";
+    
     std::string cmd = "cd ";
     cmd += cwd;
     cmd += " && python3 src/core/gitreader.py .";
     
     FILE* pipe = popen(cmd.c_str(), "r");
-    if (!pipe) return "{}";
+    if (!pipe) {
+        return "{}";
+    }
     
     std::string output;
     char buf[512];
@@ -37,6 +37,11 @@ std::string GitPanel::run_python_script() {
         output += buf;
     }
     pclose(pipe);
+    
+    if (output.empty()) {
+        return "{}";
+    }
+    
     return output;
 }
 
