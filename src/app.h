@@ -31,6 +31,8 @@ private:
     TaskPanel task_panel;
     Config config;
     std::atomic<bool> running;
+    bool input_mode;
+    std::string input_buffer;
     
     void refresh_loop();
 };
