@@ -71,7 +71,7 @@ void DevPulseApp::run() {
                 right_column,
             }) | flex,
             separator(),
-            text("q: quit | a: add task | d: toggle | x: delete | arrows: navigate") | dim | center,
+            text("q: quit | a: add task | d: toggle | x: delete | arrows: navigate") | color(Color::Cyan) | center,
         });
     });
 

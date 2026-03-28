@@ -52,7 +52,7 @@ Element GitPanel::render() {
         return vbox({
             text("GIT") | bold | color(Color::Yellow),
             separator(),
-            text("Not a git repository") | dim,
+            text("Not a git repository") | color(Color::Cyan),
         }) | border;
     }
 

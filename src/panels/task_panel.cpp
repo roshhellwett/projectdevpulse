@@ -133,7 +133,7 @@ Element TaskPanel::render() {
     
     if (tasks.empty()) {
         task_lines.push_back(
-            text("No tasks. Press 'a' to add.") | dim | color(Color::RGB(128, 128, 128))
+            text("No tasks. Press 'a' to add.") | color(Color::Cyan)
         );
     } else {
         for (size_t i = 0; i < tasks.size(); ++i) {
@@ -164,6 +164,6 @@ Element TaskPanel::render() {
         separator(),
         vbox(task_lines) | flex,
         separator(),
-        text("a:add  d:toggle  x:delete") | dim,
+        text("a:add  d:toggle  x:delete") | color(Color::Cyan),
     }) | border;
 }

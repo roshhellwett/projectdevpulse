@@ -69,9 +69,9 @@ Element LogPanel::render() {
     Elements log_lines;
     
     if (!log_file.is_open()) {
-        log_lines.push_back(text("Log file not found") | color(Color::Red) | dim);
-        log_lines.push_back(text("Tried: /var/log/syslog") | dim);
-        log_lines.push_back(text("       /var/log/messages") | dim);
+        log_lines.push_back(text("Log file not found") | color(Color::Red));
+        log_lines.push_back(text("Tried: /var/log/syslog") | color(Color::Cyan));
+        log_lines.push_back(text("       /var/log/messages") | color(Color::Cyan));
     } else {
         for (auto& line : lines) {
             if (line.find("ERROR") != std::string::npos ||
@@ -90,7 +90,7 @@ Element LogPanel::render() {
         }
         
         if (lines.empty()) {
-            log_lines.push_back(text("Waiting for logs...") | dim);
+            log_lines.push_back(text("Waiting for logs...") | color(Color::Cyan));
         }
     }
 
