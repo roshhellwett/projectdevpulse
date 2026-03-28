@@ -1,17 +1,7 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/zenith-opensource/devpulse/main/.assets/logo.png" alt="DevPulse" width="200" style="filter: drop-shadow(0 0 20px rgba(0,255,136,0.3));">
-</p>
-
-<h1 align="center">
-  <code>Project Dev Pulse</code>
+<h1 align=>
+  PROJECT DEV PULSE
 </h1>
-
-<p align="center">
-  <strong>Developer Dashboard for Windows</strong><br>
-  Real-time system monitoring, git status, process tracking & task management
-</p>
-
-<p align="center">
+<p align=>
   <img src="https://img.shields.io/badge/Version-1.0.0-00d9ff?style=flat-square" alt="Version">
   <img src="https://img.shields.io/badge/License-MIT-ff6b6b?style=flat-square" alt="License">
   <img src="https://img.shields.io/badge/Platform-Windows%20x64-00ff88?style=flat-square" alt="Platform">
@@ -21,46 +11,38 @@
 
 ---
 
-## What is DevPulse?
-
+<p align=>
 DevPulse is a sleek, real-time terminal dashboard that keeps your development workspace visible at a glance. No more context switching between terminals — system stats, git status, dev processes, logs, and tasks all in one place.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/zenith-opensource/devpulse/main/.assets/screenshot.png" alt="DevPulse Screenshot" width="800">
 </p>
 
 ---
 
-## Features
-
-### 🖥️ System Monitor
+### System Monitor
 - CPU usage with animated progress bar
 - RAM utilization tracking
 - Color-coded thresholds (green → yellow → red)
 
-### 📊 Git Integration
+### Git Integration
 - Current branch display with badge
 - File status indicators (modified, added, deleted)
 - Recent commits at a glance
 
-### ⚙️ Process Tracker
+### Process Tracker
 - Auto-detects developer tools (gcc, g++, clang, make, cmake, node, etc.)
 - Process count with live updates
 - Memory usage per process
 
-### 📝 Task Manager
+### Task Manager
 - Quick-add tasks with keyboard shortcuts
 - Mark complete/incomplete with visual feedback
 - Persistent storage via JSON
 
-### 📜 Log Viewer
+### Log Viewer
 - Real-time log tailing
 - Color-coded severity levels [ERR] [WRN] [INF] [OK]
 - Timestamped entries
 
 ---
-
-## Quick Start
 
 ### Prerequisites
 - Windows 10/11 x64
@@ -168,43 +150,5 @@ devpulse/
 
 ---
 
-## System Requirements
-
-| Requirement | Minimum |
-|------------|---------|
-| OS | Windows 10/11 (x64) |
-| RAM | 4 GB |
-| Display | 1024x768 terminal |
-| Dependencies | MSYS2 + MinGW-w64 |
-
----
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing`)
-5. Open a Pull Request
-
----
-
-## License
-
-MIT License © 2026 **Zenith Open Source Projects**
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software.
-
----
-
-<p align="center">
-  <strong>Made with ❤️ by developers, for developers</strong><br>
-  <sub>Project Dev Pulse v1.0.0</sub>
-</p>
-
-<p align="center">
-  <a href="https://github.com/zenith-opensource">GitHub</a> •
-  <a href="https://github.com/zenith-opensource/devpulse/releases">Releases</a>
-</p>
+© 2026 [Zenith Open Source Projects](https://zenithopensourceprojects.vercel.app/). All Rights Reserved. 
+Zenith is a Open Source Project Idea's by @roshhellwett
