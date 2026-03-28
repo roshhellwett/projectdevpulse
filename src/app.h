@@ -9,6 +9,7 @@
 #include <ftxui/component/component.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <atomic>
+#include <string>
 
 #include "panels/system_panel.h"
 #include "panels/git_panel.h"
@@ -32,7 +33,7 @@ private:
     Config config;
     std::atomic<bool> running;
     bool input_mode;
-    ftxui::Input input_field;
+    std::string input_buffer;
     
     void refresh_loop();
 };
