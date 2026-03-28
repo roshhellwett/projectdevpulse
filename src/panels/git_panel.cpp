@@ -18,18 +18,24 @@ using json = nlohmann::json;
 GitPanel::GitPanel() { refresh(); }
 
 std::string GitPanel::run_python_script() {
-    char cwd[PATH_MAX];
+    char cwd[1024];
     if (getcwd(cwd, sizeof(cwd)) == nullptr) {
         return "{}";
     }
-    std::string script_path = std::string(cwd) + "/src/core/gitreader.py";
-    std::string cmd = "python3 " + script_path + " " + cwd + " 2>/dev/null";
-    std::string output;
+    std::string script_path = cwd;
+    script_path += "/src/core/gitreader.py";
+    std::string cmd = "cd ";
+    cmd += cwd;
+    cmd += " && python3 src/core/gitreader.py .";
+    
     FILE* pipe = popen(cmd.c_str(), "r");
     if (!pipe) return "{}";
+    
+    std::string output;
     char buf[512];
-    while (fgets(buf, sizeof(buf), pipe))
+    while (fgets(buf, sizeof(buf), pipe)) {
         output += buf;
+    }
     pclose(pipe);
     return output;
 }
