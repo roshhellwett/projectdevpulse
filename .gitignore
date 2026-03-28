@@ -1,10 +1,9 @@
 build/
+dist/*.exe
+dist/*.zip
 *.o
-*.out
+*.obj
 *.log
-pycache/
-.pyc
-.cache/
 compile_commands.json
 .DS_Store
-tasks/*.json
+vcpkg_installed/

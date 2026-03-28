@@ -1,6 +1,0 @@
-# 1. Install dependencies
-./scripts/install_deps.sh
-# 2. Build
-./build.sh
-# 3. Run
-./run.sh

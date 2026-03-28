@@ -12,7 +12,7 @@
 
 class LogPanel {
 public:
-    LogPanel(const std::string& log_path = "/var/log/syslog");
+    LogPanel(const std::string& log_path = "devpulse.log");
     void refresh();
     ftxui::Element render();
     void set_log_path(const std::string& path);

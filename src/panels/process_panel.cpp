@@ -25,7 +25,8 @@ static const char* DEV_PROCESSES[] = {
     "webpack", "vite", "next", "nuxt", "django", "flask", "rails", "spring",
     "mvn", "sbt", "zig", "swift", "kotlin", "scala",
     "code", "devenv", "clion", "pycharm", "webstorm", "goland",
-    "sublime_text", "notepad++", "git", "cmd", "powershell", "terminal"
+    "sublime_text", "notepad++", "git", "cmd", "powershell", "terminal",
+    "devpulse"
 };
 
 static const size_t NUM_DEV_PROCESSES = sizeof(DEV_PROCESSES) / sizeof(DEV_PROCESSES[0]);
@@ -63,6 +64,11 @@ std::vector<ProcessInfo> ProcessPanel::get_dev_processes() {
     }
     
     CloseHandle(snapshot);
+    
+    std::sort(result.begin(), result.end(), [](const ProcessInfo& a, const ProcessInfo& b) {
+        return a.name < b.name;
+    });
+    
     return result;
 }
 
@@ -76,20 +82,41 @@ Element ProcessPanel::render() {
     Elements lines;
 
     if (processes.empty()) {
-        lines.push_back(text("No dev processes running") | color(Color::Cyan));
+        lines.push_back(text("  No dev processes") | color(Color::GrayDark));
+        lines.push_back(text("  Running") | color(Color::GrayDark));
     } else {
         for (auto& p : processes) {
-            lines.push_back(hbox({
-                text(std::to_string(p.pid)) | color(Color::Cyan) | flex,
+            std::string name = p.name;
+            if (name.length() > 20) {
+                name = name.substr(0, 17) + "...";
+            }
+            
+            lines.push_back(hbox(Elements{
+                text("  ") | flex,
+                text("o") | color(Color::Green) | bold,
+                text("  ") | flex,
+                text(std::to_string(p.pid)) | color(Color::Cyan) | size(WIDTH, LESS_THAN, 6),
                 text(" ") | flex,
-                text(p.name) | color(Color::Green) | flex,
+                text(name) | color(Color::White) | flex,
             }));
         }
     }
 
-    return vbox({
-        text("PROCESSES") | bold | color(Color::Magenta),
-        separator(),
-        vbox(lines) | flex,
-    }) | border;
+    size_t count = processes.size();
+    std::string count_str = std::to_string(count) + (count == 1 ? " process" : " processes");
+
+    Elements els;
+    els.push_back(hbox(Elements{
+        text(" DEVELOPER PROCESSES ") | bold | color(Color::Magenta) | inverted,
+    }));
+    els.push_back(separator());
+    els.push_back(hbox(Elements{
+        text("  ") | flex,
+        text("[ " + count_str + " ]") | color(Color::Cyan) | bold,
+    }));
+    els.push_back(separator());
+    els.push_back(vbox(lines) | flex);
+    els.push_back(separator());
+    els.push_back(text(""));
+    return vbox(els) | border;
 }

@@ -18,7 +18,7 @@ struct Config {
     bool show_log = true;
     bool show_tasks = true;
     
-    std::string log_file = "/var/log/syslog";
+    std::string log_file = "devpulse.log";
     std::vector<std::string> process_filter = {
         "gcc", "g++", "python", "node", "vim", "nvim", "make"
     };

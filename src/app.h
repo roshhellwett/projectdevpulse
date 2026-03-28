@@ -34,6 +34,9 @@ private:
     std::atomic<bool> running;
     bool input_mode;
     std::string input_buffer;
+    int pulse_state;
     
     void refresh_loop();
+    std::string get_pulse_indicator();
+    std::string get_timestamp();
 };

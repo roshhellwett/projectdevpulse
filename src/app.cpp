@@ -82,75 +82,65 @@ void DevPulseApp::run() {
         };
         Element right_column = vbox(right_elements) | flex;
 
-        Element header = hbox({
-            text("") | flex,
-            vbox({
-                text("") | size(HEIGHT, EQUAL, 1),
-                text("  ╔══════════════════════════════════════════════════════════╗") | color(Color::CyanLight),
-                text("  ║") | color(Color::CyanLight),
-                hbox({
-                    text("  ║       ") | color(Color::CyanLight),
-                    text("PROJECT DEV PULSE") | bold | color(Color::CyanLight),
-                    text("  v1.0.0") | color(Color::White),
-                }),
-                text("  ║       ") | color(Color::CyanLight),
-                hbox({
-                    text("  ║       ") | color(Color::CyanLight),
-                    text("Zenith Open Source Projects") | color(Color::White),
-                    text("           ") | flex,
-                    text("Live") | bold | color(pulse_state % 2 == 0 ? Color::Green : Color::GreenLight),
-                }) | flex,
-                text("  ╚══════════════════════════════════════════════════════════╝") | color(Color::CyanLight),
-                text("") | size(HEIGHT, EQUAL, 1),
-            }) | flex,
-            text("") | flex,
-        });
+        Color pulse_color = pulse_state % 2 == 0 ? Color::Green : Color::GreenLight;
+        
+        Elements header_els;
+        header_els.push_back(text("  ") | flex);
+        header_els.push_back(text("  ╔══════════════════════════════════════════════════════════╗") | color(Color::CyanLight));
+        header_els.push_back(text("  ║       ") | color(Color::CyanLight));
+        header_els.push_back(text("PROJECT DEV PULSE  v1.0.0") | bold | color(Color::CyanLight));
+        header_els.push_back(text("  ║       ") | color(Color::CyanLight));
+        header_els.push_back(text("Zenith Open Source Projects") | color(Color::White));
+        header_els.push_back(text("       ") | flex);
+        header_els.push_back(text("Live") | bold | color(pulse_color));
+        header_els.push_back(text("  ╚══════════════════════════════════════════════════════════╝") | color(Color::CyanLight));
+        Element header = hbox(header_els);
 
         Element footer;
         if (input_mode) {
-            footer = vbox({
-                separator() | color(Color::Yellow),
-                hbox({
-                    text("  ADD NEW TASK") | bold | color(Color::Yellow),
-                    text("                              ") | flex,
-                    text("ENTER: Save") | color(Color::Green),
-                    text("  |  ") | color(Color::DimWhite),
-                    text("ESC: Cancel") | color(Color::Red),
-                }) | bold,
-                input_comp->Render() | border,
-            }) | color(Color::Yellow);
+            Elements footer_els;
+            footer_els.push_back(separator());
+            footer_els.push_back(hbox(Elements{
+                text("  ADD NEW TASK") | bold | color(Color::Yellow),
+                text("                              ") | flex,
+                text("ENTER: Save") | color(Color::Green),
+                text("  |  ") | color(Color::GrayDark),
+                text("ESC: Cancel") | color(Color::Red),
+            }));
+            footer_els.push_back(input_comp->Render() | border);
+            footer = vbox(footer_els);
         } else {
-            footer = vbox({
-                separator() | color(Color::CyanDark),
-                hbox({
-                    text("  Copyright (c) 2024 ") | color(Color::DimWhite),
-                    text("Zenith Open Source Projects") | bold | color(Color::White),
-                    text("  |  All rights reserved") | color(Color::DimWhite),
-                    text("                    ") | flex,
-                    text("[q] Quit") | color(Color::Red) | bold,
-                    text("  [a] Add  ") | color(Color::Green),
-                    text("[d] Toggle  ") | color(Color::Yellow),
-                    text("[x] Delete  ") | color(Color::Red),
-                    text("[↑↓] Navigate") | color(Color::Cyan),
-                }),
-                hbox({
-                    text("  DevPulse - Your Development Companion") | color(Color::DimWhite),
-                    text("                                         ") | flex,
-                    text("Last update: ") | color(Color::DimWhite),
-                    text(get_timestamp()) | color(Color::Cyan) | bold,
-                }),
-            });
+            Elements footer_els;
+            footer_els.push_back(separator());
+            footer_els.push_back(hbox(Elements{
+                text("  Copyright (c) 2024 ") | color(Color::GrayDark),
+                text("Zenith Open Source Projects") | bold | color(Color::White),
+                text("  |  All rights reserved") | color(Color::GrayDark),
+                text("                    ") | flex,
+                text("[q] Quit") | color(Color::Red) | bold,
+                text("  [a] Add  ") | color(Color::Green),
+                text("[d] Toggle  ") | color(Color::Yellow),
+                text("[x] Delete  ") | color(Color::Red),
+                text("[Up/Dn] Navigate") | color(Color::Cyan),
+            }));
+            footer_els.push_back(hbox(Elements{
+                text("  DevPulse - Your Development Companion") | color(Color::GrayDark),
+                text("                                         ") | flex,
+                text("Last update: ") | color(Color::GrayDark),
+                text(get_timestamp()) | color(Color::Cyan) | bold,
+            }));
+            footer = vbox(footer_els);
         }
 
-        return vbox({
-            header,
-            hbox({
-                left_column,
-                text("│") | color(Color::CyanDark),
-                right_column,
-            }) | flex,
-            footer,
-        });
+        Elements main_els;
+        main_els.push_back(header);
+        main_els.push_back(hbox(Elements{
+            left_column,
+            text("│") | color(Color::GrayDark),
+            right_column,
+        }) | flex);
+        main_els.push_back(footer);
+        return vbox(main_els);
     });
 
     auto component = CatchEvent(renderer, [&](Event event) {

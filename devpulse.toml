@@ -10,7 +10,7 @@ show_log     = true
 show_tasks   = true
 
 [log]
-file = "/var/log/syslog"
+file = "devpulse.log"
 
 [process]
-filter = ["gcc", "g++", "python", "node", "vim", "nvim", "make"]
+filter = ["gcc", "g++", "clang", "clang++", "python", "node", "npm", "vim", "nvim", "make", "cmake", "clangd"]

@@ -23,7 +23,7 @@ static std::string get_current_timestamp() {
     auto now = std::time(nullptr);
     auto tm = *std::localtime(&now);
     std::ostringstream oss;
-    oss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
+    oss << std::put_time(&tm, "%H:%M");
     return oss.str();
 }
 
@@ -125,16 +125,26 @@ void TaskPanel::set_selected(int index) {
 }
 
 void TaskPanel::refresh() {
-    // Nothing to refresh - tasks are event-driven
 }
 
 Element TaskPanel::render() {
     Elements task_lines;
     
+    int total = (int)tasks.size();
+    int completed = 0;
+    for (auto& t : tasks) {
+        if (t.done) completed++;
+    }
+    
+    int bar_width = 10;
+    int filled = total > 0 ? (int)((float)completed / total * bar_width) : 0;
+    std::string progress_bar = "[" + std::string(filled, '#') + std::string(bar_width - filled, '-') + "]";
+    
+    std::string progress_text = std::to_string(completed) + "/" + std::to_string(total) + " done";
+    
     if (tasks.empty()) {
-        task_lines.push_back(
-            text("No tasks. Press 'a' to add.") | color(Color::Cyan)
-        );
+        task_lines.push_back(text("  No tasks yet") | color(Color::GrayDark));
+        task_lines.push_back(text("  Press [a] to add") | color(Color::Cyan));
     } else {
         for (size_t i = 0; i < tasks.size(); ++i) {
             auto& t = tasks[i];
@@ -142,14 +152,21 @@ Element TaskPanel::render() {
             
             std::string checkbox = t.done ? "[x]" : "[ ]";
             Color check_color = t.done ? Color::Green : Color::White;
-            Color text_color = t.done ? Color::RGB(128, 128, 128) : Color::White;
+            Color text_color = t.done ? Color::GrayDark : Color::White;
             
-            Elements line_elements = {
-                text(checkbox) | color(check_color),
-                text(" ") | flex,
-                text(t.text) | color(text_color),
-            };
-            auto line = hbox(line_elements);
+            std::string name = t.text;
+            if (name.length() > 25) {
+                name = name.substr(0, 22) + "...";
+            }
+            
+            Element line = hbox(Elements{
+                text("  ") | flex,
+                text(checkbox) | color(check_color) | bold,
+                text("  ") | flex,
+                text(name) | color(text_color),
+                text("  ") | flex,
+                text("@" + t.created_at) | color(Color::GrayDark),
+            });
             
             if (is_selected) {
                 line = line | inverted;
@@ -159,11 +176,22 @@ Element TaskPanel::render() {
         }
     }
 
-    return vbox({
-        text("TASKS") | bold | color(Color::Green),
-        separator(),
-        vbox(task_lines) | flex,
-        separator(),
-        text("a:add  d:toggle  x:delete") | color(Color::Cyan),
-    }) | border;
+    Color progress_color = (completed == total && total > 0) ? Color::Green : Color::Yellow;
+
+    Elements els;
+    els.push_back(hbox(Elements{
+        text(" TASK MANAGER ") | bold | color(Color::Green) | inverted,
+    }));
+    els.push_back(separator());
+    els.push_back(hbox(Elements{
+        text("  Progress: ") | color(Color::White),
+        text(progress_bar) | color(progress_color),
+        text("  ") | flex,
+        text(progress_text) | bold | color(Color::Cyan),
+    }));
+    els.push_back(separator());
+    els.push_back(vbox(task_lines) | flex);
+    els.push_back(separator());
+    els.push_back(text(""));
+    return vbox(els) | border;
 }
