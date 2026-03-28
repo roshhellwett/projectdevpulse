@@ -1,0 +1,30 @@
+#include <winres.h>
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     1,0,0,0
+PRODUCTVERSION  1,0,0,0
+FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
+FILEFLAGS       0
+FILEOS          VOS__WINDOWS32
+FILETYPE        VFT_APP
+FILESUBTYPE     0
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4"
+        BEGIN
+            VALUE "CompanyName",      "Zenith Open Source Projects"
+            VALUE "FileDescription",  "Project Dev Pulse - Developer Dashboard"
+            VALUE "FileVersion",     "1.0.0"
+            VALUE "InternalName",    "devpulse"
+            VALUE "LegalCopyright",  "Copyright (c) 2026 Zenith Open Source Projects. All rights reserved."
+            VALUE "OriginalFilename","devpulse.exe"
+            VALUE "ProductName",     "Project Dev Pulse"
+            VALUE "ProductVersion",  "1.0.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0409, 1252
+    END
+END

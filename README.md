@@ -1,110 +1,210 @@
-# devpulse
+<p align="center">
+  <img src="https://raw.githubusercontent.com/zenith-opensource/devpulse/main/.assets/logo.png" alt="DevPulse" width="200" style="filter: drop-shadow(0 0 20px rgba(0,255,136,0.3));">
+</p>
 
-**Developer Workspace Dashboard — Built for Linux**
+<h1 align="center">
+  <code>Project Dev Pulse</code>
+</h1>
 
-A single terminal window that keeps everything you need while coding in view. No switching between tabs. No context switching. Just your system, your code, and your tasks — all visible at a glance.
+<p align="center">
+  <strong>Developer Dashboard for Windows</strong><br>
+  Real-time system monitoring, git status, process tracking & task management
+</p>
 
----
-
-## What It Does
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     SYSTEM MONITORING                        │
-│                                                             │
-│   CPU:    [████████░░░░░░░░░░░] 40%                       │
-│   RAM:    [███████░░░░░░░░░░░░░] 35%                       │
-│   DISK:   [████████████░░░░░░░░] 62%                       │
-│                                                             │
-│   PROCESSES (dev tools running)                             │
-│   gcc, make, python3...                                     │
-│                                                             │
-├─────────────────────────────────────────────────────────────┤
-│                        GIT STATUS                           │
-│                                                             │
-│   Branch: main                                             │
-│   Status: M src/app.cpp  A README.md                       │
-│   Commits: latest commit message here                       │
-│                                                             │
-│   LOG VIEWER                                               │
-│   [color-coded system logs in real-time]                    │
-│                                                             │
-│   TASK TRACKER (per-project TODO)                           │
-│   [x] Fix authentication bug                                │
-│   [ ] Add dark mode                                         │
-│   [ ] Write unit tests                                      │
-└─────────────────────────────────────────────────────────────┘
-```
+<p align="center">
+  <img src="https://img.shields.io/badge/Version-1.0.0-00d9ff?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/License-MIT-ff6b6b?style=flat-square" alt="License">
+  <img src="https://img.shields.io/badge/Platform-Windows%20x64-00ff88?style=flat-square" alt="Platform">
+  <img src="https://img.shields.io/badge/C%2B%2B-17-blue?style=flat-square" alt="C++">
+  <img src="https://img.shields.io/badge/UI%20Framework-FTXUI-9900ff?style=flat-square" alt="FTXUI">
+</p>
 
 ---
 
-## Who Is It For?
+## What is DevPulse?
 
-| You have... | devpulse helps by... |
-|-------------|---------------------|
-| Multiple terminals open | One window shows everything |
-| Switching between tools to check status | System stats always visible |
-| Forgetting to track tasks | Built-in todo list per project |
-| Missing important log errors | Color-coded log viewer |
-| Lost git context | Current branch/status always shown |
+DevPulse is a sleek, real-time terminal dashboard that keeps your development workspace visible at a glance. No more context switching between terminals — system stats, git status, dev processes, logs, and tasks all in one place.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/zenith-opensource/devpulse/main/.assets/screenshot.png" alt="DevPulse Screenshot" width="800">
+</p>
+
+---
+
+## Features
+
+### 🖥️ System Monitor
+- CPU usage with animated progress bar
+- RAM utilization tracking
+- Color-coded thresholds (green → yellow → red)
+
+### 📊 Git Integration
+- Current branch display with badge
+- File status indicators (modified, added, deleted)
+- Recent commits at a glance
+
+### ⚙️ Process Tracker
+- Auto-detects developer tools (gcc, g++, clang, make, cmake, node, etc.)
+- Process count with live updates
+- Memory usage per process
+
+### 📝 Task Manager
+- Quick-add tasks with keyboard shortcuts
+- Mark complete/incomplete with visual feedback
+- Persistent storage via JSON
+
+### 📜 Log Viewer
+- Real-time log tailing
+- Color-coded severity levels [ERR] [WRN] [INF] [OK]
+- Timestamped entries
 
 ---
 
 ## Quick Start
 
-```bash
-git clone https://github.com/zenith-open-source/devpulse
+### Prerequisites
+- Windows 10/11 x64
+- [MSYS2](https://www.msys2.org/) with MinGW-w64
+
+### Build & Run
+
+```powershell
+# Clone the repository
+git clone https://github.com/zenith-opensource/devpulse
 cd devpulse
-./build.sh    # Installs dependencies + builds (first time only)
-./run.sh      # Run devpulse
+
+# Run the build script
+.\build.bat
+
+# Launch
+.\dist\devpulse.exe
 ```
+
+### Installer (Optional)
+
+For a proper Windows installation, use Inno Setup:
+
+```powershell
+iscc setup.iss
+```
+
+This creates `DevPulse-Setup-1.0.0.exe` with Start Menu shortcuts.
 
 ---
 
-## Controls
+## Keyboard Controls
 
 | Key | Action |
 |-----|--------|
+| `q` | Quit application |
 | `a` | Add new task |
 | `d` | Toggle task done/undone |
 | `x` | Delete selected task |
-| `↑` `↓` | Navigate task list |
-| `q` | Quit |
+| `↑` / `↓` | Navigate task list |
 
 ---
 
 ## Configuration
 
-Edit `devpulse.toml` to customize:
+Edit `devpulse.toml` to customize behavior:
 
 ```toml
-refresh_rate_ms = 1000    # How often to update (milliseconds)
-log_file = "/var/log/syslog"  # Log file to watch
+[general]
+refresh_rate_ms = 1000
+theme = "dark"
+
+[panels]
+show_system  = true
+show_git     = true
+show_process = true
+show_log     = true
+show_tasks   = true
+
+[log]
+file = "devpulse.log"
+
+[process]
+filter = ["gcc", "g++", "clang", "clang++", "python", "node", "npm", "vim", "nvim", "make", "cmake", "clangd"]
 ```
 
 ---
 
-## Requirements
+## Architecture
 
-- Linux (Ubuntu, Debian, Arch)
-- GCC/G++ compiler
-- CMake
-- Python 3 + gitpython
-- 1920x1080 or larger terminal
+```
+devpulse/
+├── src/
+│   ├── app.cpp/h          # Main application & UI rendering
+│   ├── main.cpp          # Entry point
+│   ├── core/
+│   │   └── sysreader_win.cpp  # Windows system stats API
+│   ├── panels/
+│   │   ├── system_panel.cpp   # CPU/RAM display
+│   │   ├── git_panel.cpp      # Git status integration
+│   │   ├── process_panel.cpp  # Process enumeration
+│   │   ├── task_panel.cpp     # Task management
+│   │   └── log_panel.cpp      # Log viewer
+│   └── utils/
+│       └── config.cpp/h   # Configuration loader
+├── include/
+│   └── nlohmann/         # JSON library (header-only)
+├── CMakeLists.txt        # Build configuration
+├── build.bat             # Windows build script
+├── setup.iss             # Inno Setup installer
+└── devpulse.toml         # Runtime configuration
+```
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| UI Framework | FTXUI (C++ terminal UI) |
-| System Calls | C via /proc filesystem |
-| Git Integration | Python subprocess |
-| Data Storage | nlohmann/json |
+| Component | Technology |
+|-----------|-----------|
+| **Language** | C++17 |
+| **UI Framework** | FTXUI (terminal UI) |
+| **JSON** | nlohmann/json (header-only) |
+| **Build** | CMake + FetchContent |
+| **Installer** | Inno Setup |
+
+---
+
+## System Requirements
+
+| Requirement | Minimum |
+|------------|---------|
+| OS | Windows 10/11 (x64) |
+| RAM | 4 GB |
+| Display | 1024x768 terminal |
+| Dependencies | MSYS2 + MinGW-w64 |
+
+---
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing`)
+5. Open a Pull Request
 
 ---
 
 ## License
 
-MIT — Zenith Open Source Projects
+MIT License © 2026 **Zenith Open Source Projects**
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software.
+
+---
+
+<p align="center">
+  <strong>Made with ❤️ by developers, for developers</strong><br>
+  <sub>Project Dev Pulse v1.0.0</sub>
+</p>
+
+<p align="center">
+  <a href="https://github.com/zenith-opensource">GitHub</a> •
+  <a href="https://github.com/zenith-opensource/devpulse/releases">Releases</a>
+</p>

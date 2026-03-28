@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(WIN32)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS -DWIN32_LEAN_AND_MEAN)
-    set(CMAKE_EXE_LINKER_FLAGS "-static -static-libgcc")
 endif()
 
 include(FetchContent)
@@ -30,6 +29,13 @@ if(UNIX AND NOT APPLE)
 endif()
 
 add_executable(devpulse ${CXX_SOURCES})
+
+if(WIN32)
+    enable_language(RC)
+    set(RC_COMPILER windres)
+    set(RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff -i <SOURCE> -o <OBJECT>")
+    target_sources(devpulse PRIVATE devpulse.rc)
+endif()
 
 target_include_directories(devpulse PRIVATE
     src/

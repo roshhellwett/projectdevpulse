@@ -1,9 +1,38 @@
+# Build output
 build/
-dist/*.exe
-dist/*.zip
+
+# Distribution files (generated)
+dist/
+
+# Compiled objects
 *.o
 *.obj
+*.a
+*.lib
+*.dll
+*.exe
+
+# CMake
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# Logs
 *.log
-compile_commands.json
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
 .DS_Store
-vcpkg_installed/
+Thumbs.db
+
+# Dependencies (downloaded by CMake FetchContent)
+_deps/
+
+# Temp files
+*.tmp
+*~
