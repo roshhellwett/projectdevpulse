@@ -13,9 +13,6 @@
 #include <algorithm>
 #include <vector>
 
-#pragma comment(lib, "kernel32.lib")
-#pragma comment(lib, "psapi.lib")
-
 using namespace ftxui;
 
 static const char* DEV_PROCESSES[] = {
@@ -48,6 +45,28 @@ std::vector<ProcessInfo> ProcessPanel::get_dev_processes() {
     if (snapshot == INVALID_HANDLE_VALUE)
         return result;
     
+    FILETIME curr_idle, curr_kernel, curr_user;
+    GetSystemTimes(&curr_idle, &curr_kernel, &curr_user);
+    
+    ULONGLONG system_delta = 0;
+    
+    if (!first_run) {
+        ULARGE_INTEGER ul_kernel, ul_user, ul_last_kernel, ul_last_user;
+        memcpy(&ul_kernel, &curr_kernel, sizeof(ULARGE_INTEGER));
+        memcpy(&ul_user, &curr_user, sizeof(ULARGE_INTEGER));
+        memcpy(&ul_last_kernel, &last_kernel_time, sizeof(ULARGE_INTEGER));
+        memcpy(&ul_last_user, &last_user_time, sizeof(ULARGE_INTEGER));
+        
+        ULONGLONG kern_delta = ul_kernel.QuadPart - ul_last_kernel.QuadPart;
+        ULONGLONG user_delta = ul_user.QuadPart - ul_last_user.QuadPart;
+        system_delta = kern_delta + user_delta;
+    }
+    
+    memcpy(&last_idle_time, &curr_idle, sizeof(ULARGE_INTEGER));
+    memcpy(&last_kernel_time, &curr_kernel, sizeof(ULARGE_INTEGER));
+    memcpy(&last_user_time, &curr_user, sizeof(ULARGE_INTEGER));
+    first_run = false;
+    
     PROCESSENTRY32 pe32;
     pe32.dwSize = sizeof(PROCESSENTRY32);
     
@@ -58,6 +77,28 @@ std::vector<ProcessInfo> ProcessPanel::get_dev_processes() {
                 ProcessInfo info;
                 info.pid = pe32.th32ProcessID;
                 info.name = process_name;
+                
+                HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pe32.th32ProcessID);
+                if (hProcess) {
+                    PROCESS_MEMORY_COUNTERS pmc;
+                    if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc))) {
+                        info.memory_mb = pmc.WorkingSetSize / (1024 * 1024);
+                    }
+                    
+                    FILETIME ft_creation, ft_exit, ft_kernel, ft_user;
+                    if (GetProcessTimes(hProcess, &ft_creation, &ft_exit, &ft_kernel, &ft_user)) {
+                        ULARGE_INTEGER ul_kernel, ul_user;
+                        memcpy(&ul_kernel, &ft_kernel, sizeof(ULARGE_INTEGER));
+                        memcpy(&ul_user, &ft_user, sizeof(ULARGE_INTEGER));
+                        ULONGLONG process_time = ul_kernel.QuadPart + ul_user.QuadPart;
+                        if (system_delta > 0) {
+                            info.cpu_percent = (double)process_time / system_delta * 100.0;
+                            if (info.cpu_percent > 100.0) info.cpu_percent = 100.0;
+                        }
+                    }
+                    CloseHandle(hProcess);
+                }
+                
                 result.push_back(info);
             }
         } while (Process32Next(snapshot, &pe32));
@@ -72,51 +113,39 @@ std::vector<ProcessInfo> ProcessPanel::get_dev_processes() {
     return result;
 }
 
-ProcessPanel::ProcessPanel() { refresh(); }
+ProcessPanel::ProcessPanel() {
+    last_idle_time.QuadPart = 0;
+    last_kernel_time.QuadPart = 0;
+    last_user_time.QuadPart = 0;
+    refresh();
+}
 
 void ProcessPanel::refresh() {
     processes = get_dev_processes();
 }
 
 Element ProcessPanel::render() {
-    Elements lines;
-
+    Elements els;
+    
+    size_t count = processes.size();
+    
+    els.push_back(text("PROCESSES: " + std::to_string(count) + " running") | bold | color(Color::Magenta));
+    
     if (processes.empty()) {
-        lines.push_back(text("  No dev processes") | color(Color::GrayDark));
-        lines.push_back(text("  Running") | color(Color::GrayDark));
+        els.push_back(text("No dev processes running") | color(Color::GrayDark));
     } else {
         for (auto& p : processes) {
             std::string name = p.name;
-            if (name.length() > 20) {
-                name = name.substr(0, 17) + "...";
+            if (name.length() > 15) {
+                name = name.substr(0, 12) + "...";
             }
             
-            lines.push_back(hbox(Elements{
-                text("  ") | flex,
-                text("o") | color(Color::Green) | bold,
-                text("  ") | flex,
-                text(std::to_string(p.pid)) | color(Color::Cyan) | size(WIDTH, LESS_THAN, 6),
-                text(" ") | flex,
-                text(name) | color(Color::White) | flex,
-            }));
+            std::string info = name + " | PID: " + std::to_string(p.pid) + 
+                             " | CPU: " + std::to_string((int)p.cpu_percent) + "%" +
+                             " | MEM: " + std::to_string(p.memory_mb) + "MB";
+            els.push_back(text(info) | color(Color::White));
         }
     }
-
-    size_t count = processes.size();
-    std::string count_str = std::to_string(count) + (count == 1 ? " process" : " processes");
-
-    Elements els;
-    els.push_back(hbox(Elements{
-        text(" DEVELOPER PROCESSES ") | bold | color(Color::Magenta) | inverted,
-    }));
-    els.push_back(separator());
-    els.push_back(hbox(Elements{
-        text("  ") | flex,
-        text("[ " + count_str + " ]") | color(Color::Cyan) | bold,
-    }));
-    els.push_back(separator());
-    els.push_back(vbox(lines) | flex);
-    els.push_back(separator());
-    els.push_back(text(""));
+    
     return vbox(els) | border;
 }

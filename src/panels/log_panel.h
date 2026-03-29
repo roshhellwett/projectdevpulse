@@ -17,6 +17,7 @@ public:
     ftxui::Element render();
     void set_log_path(const std::string& path);
 private:
+    void read_all_lines();
     std::string log_path;
     std::vector<std::string> lines;
     static const size_t MAX_LINES = 20;

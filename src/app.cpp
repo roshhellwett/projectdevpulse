@@ -18,38 +18,55 @@ using namespace ftxui;
 static std::mutex refresh_mutex;
 
 DevPulseApp::DevPulseApp() 
-    : screen(ScreenInteractive::Fullscreen()),
-      config(ConfigLoader().get_config()),
+    : config(ConfigLoader().get_config()),
       running(true),
       input_mode(false),
       input_buffer(""),
       pulse_state(0) {
-    log_panel.set_log_path(config.log_file);
 }
 
 DevPulseApp::~DevPulseApp() {
     running = false;
+    delete sys_panel;
+    delete git_panel;
+    delete process_panel;
+    delete log_panel;
+    delete task_panel;
+    delete screen;
+}
+
+void DevPulseApp::init_all() {
+    if (initialized) return;
+    screen = new ftxui::ScreenInteractive(ScreenInteractive::Fullscreen());
+    sys_panel = new SystemPanel();
+    git_panel = new GitPanel();
+    process_panel = new ProcessPanel();
+    log_panel = new LogPanel(config.log_file);
+    task_panel = new TaskPanel();
+    initialized = true;
 }
 
 void DevPulseApp::refresh_loop() {
     while (running) {
         {
             std::lock_guard<std::mutex> lock(refresh_mutex);
-            sys_panel.refresh();
-            git_panel.refresh();
-            process_panel.refresh();
-            log_panel.refresh();
+            if (initialized) {
+                sys_panel->refresh();
+                git_panel->refresh();
+                process_panel->refresh();
+                log_panel->refresh();
+            }
             pulse_state = (pulse_state + 1) % 4;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(config.refresh_rate_ms));
         if (running) {
-            screen.PostEvent(Event::Custom);
+            screen->PostEvent(Event::Custom);
         }
     }
 }
 
 std::string DevPulseApp::get_pulse_indicator() {
-    const char* states[] = { " ● ", " ○ ", " ● ", " ○ " };
+    const char* states[] = { " * ", " o ", " * ", " o " };
     return states[pulse_state];
 }
 
@@ -62,6 +79,7 @@ std::string DevPulseApp::get_timestamp() {
 }
 
 void DevPulseApp::run() {
+    init_all();
     std::thread refresher([this] { refresh_loop(); });
     
     auto input_comp = Input(&input_buffer, "Type your task here...");
@@ -70,15 +88,15 @@ void DevPulseApp::run() {
         std::lock_guard<std::mutex> lock(refresh_mutex);
         
         Elements left_elements = {
-            sys_panel.render() | flex,
-            process_panel.render() | flex,
+            sys_panel->render() | flex,
+            process_panel->render() | flex,
         };
         Element left_column = vbox(left_elements) | flex;
 
         Elements right_elements = {
-            git_panel.render() | flex,
-            log_panel.render() | flex,
-            task_panel.render() | flex,
+            git_panel->render() | flex,
+            log_panel->render() | flex,
+            task_panel->render() | flex,
         };
         Element right_column = vbox(right_elements) | flex;
 
@@ -86,14 +104,14 @@ void DevPulseApp::run() {
         
         Elements header_els;
         header_els.push_back(text("  ") | flex);
-        header_els.push_back(text("  ╔══════════════════════════════════════════════════════════╗") | color(Color::CyanLight));
-        header_els.push_back(text("  ║       ") | color(Color::CyanLight));
-        header_els.push_back(text("PROJECT DEV PULSE  v1.0.0") | bold | color(Color::CyanLight));
-        header_els.push_back(text("  ║       ") | color(Color::CyanLight));
-        header_els.push_back(text("Zenith Open Source Projects") | color(Color::White));
-        header_els.push_back(text("       ") | flex);
+        header_els.push_back(text("DevPulse") | bold | color(Color::CyanLight));
+        header_els.push_back(text(" v1.0.0") | color(Color::White));
+        header_els.push_back(text(" - Zenith Open Source Projects") | color(Color::GrayDark));
+        header_els.push_back(text("              ") | flex);
         header_els.push_back(text("Live") | bold | color(pulse_color));
-        header_els.push_back(text("  ╚══════════════════════════════════════════════════════════╝") | color(Color::CyanLight));
+        header_els.push_back(text(" [") | color(Color::GrayDark));
+        header_els.push_back(text("q") | color(Color::Red) | bold);
+        header_els.push_back(text("] Quit") | color(Color::GrayDark));
         Element header = hbox(header_els);
 
         Element footer;
@@ -136,7 +154,7 @@ void DevPulseApp::run() {
         main_els.push_back(header);
         main_els.push_back(hbox(Elements{
             left_column,
-            text("│") | color(Color::GrayDark),
+            text("|") | color(Color::GrayDark),
             right_column,
         }) | flex);
         main_els.push_back(footer);
@@ -146,7 +164,7 @@ void DevPulseApp::run() {
     auto component = CatchEvent(renderer, [&](Event event) {
         if (event == Event::Character('q')) {
             running = false;
-            screen.ExitLoopClosure()();
+            screen->ExitLoopClosure()();
             return true;
         }
         
@@ -158,7 +176,7 @@ void DevPulseApp::run() {
             }
             if (event == Event::Return) {
                 if (!input_buffer.empty()) {
-                    task_panel.add_task(input_buffer);
+                    task_panel->add_task(input_buffer);
                 }
                 input_mode = false;
                 input_buffer = "";
@@ -178,13 +196,13 @@ void DevPulseApp::run() {
         }
         
         if (event == Event::ArrowUp) {
-            int sel = task_panel.get_selected();
-            task_panel.set_selected(sel - 1);
+            int sel = task_panel->get_selected();
+            task_panel->set_selected(sel - 1);
             return true;
         }
         if (event == Event::ArrowDown) {
-            int sel = task_panel.get_selected();
-            task_panel.set_selected(sel + 1);
+            int sel = task_panel->get_selected();
+            task_panel->set_selected(sel + 1);
             return true;
         }
         if (event == Event::Character('a')) {
@@ -193,16 +211,16 @@ void DevPulseApp::run() {
             return true;
         }
         if (event == Event::Character('d')) {
-            task_panel.toggle_task(task_panel.get_selected());
+            task_panel->toggle_task(task_panel->get_selected());
             return true;
         }
         if (event == Event::Character('x')) {
-            task_panel.delete_task(task_panel.get_selected());
+            task_panel->delete_task(task_panel->get_selected());
             return true;
         }
         return false;
     });
 
-    screen.Loop(component);
+    screen->Loop(component);
     refresher.join();
 }

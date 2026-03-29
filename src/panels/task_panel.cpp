@@ -4,6 +4,16 @@
  * @license  MIT License
  */
 
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+
+#include <windows.h>
+#include <shlobj.h>
+
 #include "task_panel.h"
 #include <ftxui/dom/elements.hpp>
 #include <nlohmann/json.hpp>
@@ -11,13 +21,10 @@
 #include <ctime>
 #include <sstream>
 #include <iomanip>
-#include <filesystem>
 #include <algorithm>
 
 using json = nlohmann::json;
 using namespace ftxui;
-
-namespace fs = std::filesystem;
 
 static std::string get_current_timestamp() {
     auto now = std::time(nullptr);
@@ -27,23 +34,60 @@ static std::string get_current_timestamp() {
     return oss.str();
 }
 
-static std::string get_project_name() {
-    std::error_code ec;
-    fs::path cwd = fs::current_path(ec);
-    if (ec) return "default";
-    std::string path = cwd.string();
-    size_t pos = path.find_last_of("/\\");
-    if (pos != std::string::npos) {
-        return path.substr(pos + 1);
+static bool should_exclude_from_tasks(const std::string& text) {
+    static const char* blacklist[] = {
+        "tasks.json", "task.json", "devpulse.log", "output.log", "log.txt",
+        "devpulse.exe", "devpulse-data", "package.json", "CMakeLists.txt",
+        ".git", ".github", "README.md", "LICENSE", "Makefile", ".gitignore"
+    };
+    std::string lower = text;
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+    for (const auto& excluded : blacklist) {
+        if (lower == excluded) return true;
+        if (lower.find(excluded) != std::string::npos) return true;
     }
-    return cwd.filename().string();
+    return false;
+}
+
+static bool create_directory(const std::string& path) {
+    return CreateDirectoryA(path.c_str(), NULL) != 0 || GetLastError() == ERROR_ALREADY_EXISTS;
+}
+
+static std::string get_exe_dir_fallback() {
+    wchar_t exe_path[MAX_PATH];
+    if (GetModuleFileNameW(nullptr, exe_path, MAX_PATH) == 0) {
+        return ".";
+    }
+    std::wstring ws(exe_path);
+    size_t pos = ws.find_last_of(L"\\/");
+    if (pos != std::wstring::npos) {
+        ws = ws.substr(0, pos);
+    }
+    int size_needed = WideCharToMultiByte(CP_UTF8, 0, ws.c_str(), -1, nullptr, 0, nullptr, nullptr);
+    if (size_needed == 0) return ".";
+    std::string result(size_needed - 1, char(0));
+    WideCharToMultiByte(CP_UTF8, 0, ws.c_str(), -1, &result[0], size_needed, nullptr, nullptr);
+    return result;
+}
+
+static std::string get_appdata_dir() {
+    wchar_t appdata_path[MAX_PATH];
+    if (SHGetFolderPathW(nullptr, CSIDL_APPDATA, nullptr, 0, appdata_path) != S_OK) {
+        return get_exe_dir_fallback();
+    }
+    std::wstring ws(appdata_path);
+    ws += L"\\DevPulse";
+    int size_needed = WideCharToMultiByte(CP_UTF8, 0, ws.c_str(), -1, nullptr, 0, nullptr, nullptr);
+    if (size_needed == 0) return ".";
+    std::string result(size_needed - 1, char(0));
+    WideCharToMultiByte(CP_UTF8, 0, ws.c_str(), -1, &result[0], size_needed, nullptr, nullptr);
+    return result;
 }
 
 TaskPanel::TaskPanel() : selected_index(0), next_id(1) {
-    if (!fs::exists("tasks")) {
-        fs::create_directories("tasks");
-    }
-    task_file = "tasks/" + get_project_name() + ".json";
+    std::string data_dir = get_appdata_dir();
+    create_directory(data_dir);
+    task_file = data_dir + "\\tasks.json";
     load_tasks();
 }
 
@@ -67,6 +111,14 @@ void TaskPanel::load_tasks() {
             tasks.push_back(t);
             if (t.id >= next_id) next_id = t.id + 1;
         }
+        tasks.erase(
+            std::remove_if(tasks.begin(), tasks.end(),
+                [](const Task& t) {
+                    return t.text == "task.json" || 
+                           (t.text.length() >= 5 && t.text.substr(t.text.length() - 5) == ".json");
+                }),
+            tasks.end()
+        );
     } catch (...) {}
 }
 
@@ -87,6 +139,7 @@ void TaskPanel::save_tasks() {
 }
 
 void TaskPanel::add_task(const std::string& text) {
+    if (should_exclude_from_tasks(text)) return;
     Task t;
     t.id = next_id++;
     t.text = text;
@@ -128,7 +181,7 @@ void TaskPanel::refresh() {
 }
 
 Element TaskPanel::render() {
-    Elements task_lines;
+    Elements els;
     
     int total = (int)tasks.size();
     int completed = 0;
@@ -136,62 +189,23 @@ Element TaskPanel::render() {
         if (t.done) completed++;
     }
     
-    int bar_width = 10;
-    int filled = total > 0 ? (int)((float)completed / total * bar_width) : 0;
-    std::string progress_bar = "[" + std::string(filled, '#') + std::string(bar_width - filled, '-') + "]";
-    
-    std::string progress_text = std::to_string(completed) + "/" + std::to_string(total) + " done";
+    std::string status = (completed == total && total > 0) ? "All done!" : "In progress";
+    els.push_back(text("TASKS: " + std::to_string(completed) + "/" + std::to_string(total) + " - " + status) | bold | color(Color::Green));
     
     if (tasks.empty()) {
-        task_lines.push_back(text("  No tasks yet") | color(Color::GrayDark));
-        task_lines.push_back(text("  Press [a] to add") | color(Color::Cyan));
+        els.push_back(text("No tasks - press [a] to add") | color(Color::GrayDark));
     } else {
         for (size_t i = 0; i < tasks.size(); ++i) {
             auto& t = tasks[i];
             bool is_selected = (int)i == selected_index;
             
             std::string checkbox = t.done ? "[x]" : "[ ]";
-            Color check_color = t.done ? Color::Green : Color::White;
-            Color text_color = t.done ? Color::GrayDark : Color::White;
+            std::string display = checkbox + " " + t.text + " @" + t.created_at;
             
-            std::string name = t.text;
-            if (name.length() > 25) {
-                name = name.substr(0, 22) + "...";
-            }
-            
-            Element line = hbox(Elements{
-                text("  ") | flex,
-                text(checkbox) | color(check_color) | bold,
-                text("  ") | flex,
-                text(name) | color(text_color),
-                text("  ") | flex,
-                text("@" + t.created_at) | color(Color::GrayDark),
-            });
-            
-            if (is_selected) {
-                line = line | inverted;
-            }
-            
-            task_lines.push_back(line);
+            Color text_color = t.done ? Color::GrayDark : (is_selected ? Color::Cyan : Color::White);
+            els.push_back(text(display) | color(text_color));
         }
     }
-
-    Color progress_color = (completed == total && total > 0) ? Color::Green : Color::Yellow;
-
-    Elements els;
-    els.push_back(hbox(Elements{
-        text(" TASK MANAGER ") | bold | color(Color::Green) | inverted,
-    }));
-    els.push_back(separator());
-    els.push_back(hbox(Elements{
-        text("  Progress: ") | color(Color::White),
-        text(progress_bar) | color(progress_color),
-        text("  ") | flex,
-        text(progress_text) | bold | color(Color::Cyan),
-    }));
-    els.push_back(separator());
-    els.push_back(vbox(task_lines) | flex);
-    els.push_back(separator());
-    els.push_back(text(""));
+    
     return vbox(els) | border;
 }

@@ -79,19 +79,33 @@ REM Check if executable was created
 if not exist "build\devpulse.exe" (
     echo [WARNING] Executable not found at build\devpulse.exe
     dir build\*.exe
+    goto :end
 )
+
+REM Copy required runtime DLLs for distribution
+echo [STEP 4] Bundling runtime DLLs...
+if not exist "dist\runtime" mkdir "dist\runtime"
+copy /Y "%MSYS_PATH%\libgcc_s_seh-1.dll" "dist\runtime\" >nul 2>&1
+copy /Y "%MSYS_PATH%\libstdc++-6.dll" "dist\runtime\" >nul 2>&1
+copy /Y "%MSYS_PATH%\libwinpthread-1.dll" "dist\runtime\" >nul 2>&1
+echo [INFO] Runtime DLLs copied to dist\runtime\
+
+REM Copy executable to dist folder
+copy /Y "build\devpulse.exe" "dist\" >nul 2>&1
+echo [INFO] Executable copied to dist\
+
+:end
 
 echo.
 echo ========================================
 echo   Build Complete!
 echo ========================================
 echo.
-echo Executable: build\devpulse.exe
+echo Distribution folder: dist\
+echo   - devpulse.exe
+echo   - runtime\  (required DLLs)
 echo.
-echo To run: build\devpulse.exe
-echo.
-echo [NOTE] The executable should be mostly self-contained.
-echo        Copy devpulse.exe to run on other Windows machines.
+echo To distribute: Copy the entire 'dist' folder.
 echo.
 
 exit /b 0

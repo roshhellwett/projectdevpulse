@@ -24,18 +24,20 @@ public:
     ~DevPulseApp();
     void run();
 private:
-    ftxui::ScreenInteractive screen;
-    SystemPanel sys_panel;
-    GitPanel git_panel;
-    ProcessPanel process_panel;
-    LogPanel log_panel;
-    TaskPanel task_panel;
+    ftxui::ScreenInteractive* screen = nullptr;
+    SystemPanel* sys_panel = nullptr;
+    GitPanel* git_panel = nullptr;
+    ProcessPanel* process_panel = nullptr;
+    LogPanel* log_panel = nullptr;
+    TaskPanel* task_panel = nullptr;
     Config config;
     std::atomic<bool> running;
     bool input_mode;
     std::string input_buffer;
     int pulse_state;
+    bool initialized = false;
     
+    void init_all();
     void refresh_loop();
     std::string get_pulse_indicator();
     std::string get_timestamp();
