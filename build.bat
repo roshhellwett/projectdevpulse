@@ -11,7 +11,7 @@ where g++ >nul 2>&1
 if %errorlevel% neq 0 (
     echo [ERROR] MinGW g++ not found!
     echo Please install MSYS2 from: https://www.msys2.org/
-    echo Then run: pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ftxui mingw-w64-x86_64-nlohmann-json
+    echo Then run: pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake
     exit /b 1
 )
 

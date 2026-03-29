@@ -46,7 +46,7 @@ DevPulse is a sleek, real-time terminal dashboard that keeps your development wo
 
 ### Prerequisites
 - Windows 10/11 x64
-- [MSYS2](https://www.msys2.org/) with MinGW-w64
+- [MSYS2](https://www.msys2.org/) with MinGW-w64 (gcc, cmake)
 
 ### Build & Run
 
