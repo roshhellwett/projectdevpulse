@@ -42,7 +42,7 @@ Press `Y` if it asks to confirm. Wait for it to finish (might take a few minutes
 ### Step 2: Download DevPulse
 
 #### Option A: Download Ready-to-Run Version (Easiest)
-1. Go to the [Releases page](https://github.com/roshhellwett/projectdevpulse/releases)
+1. Go to the [Releases page](https://github.com/roshhellwett/projectdevpulse/releases/tag/v1.0.0)
 2. Download `DevPulse-v1.0.0.zip`
 3. Extract the ZIP file
 4. Double-click `devpulse.exe` to run!
