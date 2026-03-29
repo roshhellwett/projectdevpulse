@@ -1,6 +1,6 @@
-# DevPulse - Developer Dashboard
+# PROJECT DEVPULSE
 
-<p align="center">
+<p align="left">
   <img src="https://img.shields.io/badge/Version-1.0.0-00d9ff?style=for-the-badge" alt="Version">
   <img src="https://img.shields.io/badge/License-MIT-ff6b6b?style=for-the-badge" alt="License">
   <img src="https://img.shields.io/badge/Platform-Windows%20x64-00ff88?style=for-the-badge" alt="Platform">
@@ -167,25 +167,6 @@ pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-make
 
 ---
 
-## FAQ
-
-### Q: Does DevPulse work on Mac or Linux?
-**A:** Not currently. DevPulse is built for Windows only.
-
-### Q: Is DevPulse free?
-**A:** Yes! DevPulse is open source under the MIT license.
-
-### Q: Can I customize the refresh rate?
-**A:** Yes! Edit `devpulse.toml` and change `refresh_rate_ms = 1000` to your preferred value (in milliseconds).
-
-### Q: How do I update DevPulse?
-**A:** Re-download from the Releases page, or run `git pull` if you cloned the repository.
-
-### Q: My antivirus says DevPulse is dangerous
-**A:** DevPulse is safe. It's open source, so you can verify the code yourself. Some antivirus programs flag C++ applications incorrectly.
-
----
-
 ## Configuration
 
 Edit `devpulse.toml` to customize behavior:
@@ -270,12 +251,6 @@ devpulse/
 | **UI Framework** | FTXUI (terminal UI) |
 | **JSON** | nlohmann/json |
 | **Build** | CMake + FetchContent |
-
----
-
-## Contributing
-
-Found a bug? Have an idea? Open an issue on GitHub!
 
 ---
 
