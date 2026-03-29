@@ -6,6 +6,8 @@
   <img src="https://img.shields.io/badge/Platform-Windows%20x64-00ff88?style=for-the-badge" alt="Platform">
 </p>
 
+![Sample](https://github.com/roshhellwett/projectdevpulse/blob/04e7e1ecd6ad5c9a0852f502fca8acb440c1d49b/sample/sample.png)
+
 DevPulse is a **real-time terminal dashboard** for developers. It shows you everything important in one window:
 - Your computer's CPU, RAM, and disk usage
 - Git branch and changes in your project
@@ -254,5 +256,5 @@ devpulse/
 
 ---
 
-© 2026 [Zenith Open Source Projects](https://zenithopensourceprojects.vercel.app/)
-Made with ❤️ by @roshhellwett
+© 2026 [Zenith Open Source Projects](https://zenithopensourceprojects.vercel.app/). All Rights Reserved. 
+Zenith is a Open Source Project Idea's by @roshhellwett
