@@ -1,0 +1,76 @@
+# Projectdevpulse
+
+> A command-line tool written in C++ — Projectdevpulse.
+
+![Language](https://img.shields.io/badge/Language-C%2B%2B-00599C)  ![License](https://img.shields.io/badge/License-MIT-blue)
+
+## Overview
+
+## Prerequisites
+
+- C++ installed on your system
+- Git
+
+## Installation
+
+```bash
+git clone https://github.com//projectdevpulse.git
+cd projectdevpulse
+cmake -B build && cmake --build build
+```
+
+## Usage
+
+```bash
+./build/projectname
+```
+
+
+## Project Structure
+
+```
+├── include
+│   └── nlohmann
+│       └── json.hpp
+├── sample
+│   └── sample.png
+├── src
+│   ├── core
+│   │   ├── sysreader.h
+│   │   └── sysreader_win.cpp
+│   ├── panels
+│   │   ├── git_panel.cpp
+│   │   ├── git_panel.h
+│   │   ├── log_panel.cpp
+│   │   ├── log_panel.h
+│   │   ├── process_panel.cpp
+│   │   ├── process_panel.h
+│   │   ├── system_panel.cpp
+│   │   ├── system_panel.h
+│   │   ├── task_panel.cpp
+│   │   └── task_panel.h
+│   ├── utils
+│   │   ├── config.cpp
+│   │   └── config.h
+│   ├── app.cpp
+│   ├── app.h
+│   └── main.cpp
+├── build.bat
+├── CMakeLists.txt
+├── DevPulse-1.0.0-win64.zip
+├── devpulse.manifest
+├── devpulse.rc
+├── devpulse.toml
+├── license
+├── readme.md
+├── security.md
+├── setup.iss
+└── vcpkg.json
+```
+
+
+
+
+## License
+
+This project is licensed under the MIT License — see the LICENSE file for details.
